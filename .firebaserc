@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "nutrimission-chatbot",
+    "defaulr": "nutrimission-chatbot",
+    "dev": "nutrimission-chatbot"
+  },
+  "targets": {},
+  "etags": {}
+}
