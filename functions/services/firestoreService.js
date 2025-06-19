@@ -1,6 +1,11 @@
 // functions/services/firestoreService.js
-const { getFirestore } = require('firebase-admin/firestore');
+const admin = require('firebase-admin');
 
-const db = getFirestore();
+// Admin SDK가 이미 초기화되었는지 확인
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
+const db = admin.firestore();
 
 module.exports = { db };
