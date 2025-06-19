@@ -22,6 +22,7 @@ function buildClassificationPrompt(answers) {
     t.subjectiveReports.forEach(r => { p += `  - ${r}\n`; });
   });
   p += '\n위 정보를 바탕으로, 가장 알맞은 식욕 유형 ID 하나만 응답해 주세요.';
+  p += '가능한 ID: physiological, emotional, external, habitual, cognitive';
   return p;
 }
 
@@ -37,6 +38,8 @@ async function classifyAppetite(answers) {
     { role: 'user',   content: prompt }
   ];
   const res = await chat(messages, { temperature: 0 });
+  console.log('🔥 LLM 응답:', res);
+
   const m = res.match(/\b(physiological|emotional|external|habitual|cognitive)\b/);
   if (!m) {
     throw new Error(`분류된 식욕 유형을 찾을 수 없습니다: ${res}`);
