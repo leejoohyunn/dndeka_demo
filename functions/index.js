@@ -287,6 +287,12 @@ app.use((err, req, res, next) => {
 });
 
 // Firebase 함수로 익스포트
-exports.api = functions.https.onRequest(app);
-exports.processMessage = processMessage;
-exports.initializeNewUser = initializeNewUser;
+exports.api = functions
+  .region('asia-northeast3')
+  .https.onRequest(app);
+exports.processMessage = functions
+  .region('asia-northeast3')
+  .https.onRequest(processMessage);
+exports.initializeNewUser = functions
+  .region('asia-northeast3')
+  .https.onRequest(initializeNewUser);
