@@ -1,32 +1,20 @@
 // functions/services/llmService.js
-
-const functions = require('firebase-functions');
 const { OpenAI } = require('openai');
+const functions = require('firebase-functions');
 
-const openai = new OpenAI({
-  apiKey: functions.config().openai.key,  // Firebase 설정에서 읽어옴
-});
-/**
- * OpenAI ChatCompletion 호출
- */
-async function chat(messages, options = {}) {
-  const {
-    model       = 'gpt-3.5-turbo',
-    temperature = 0.7,
-    maxTokens   = 500,
-  } = options;
-
-  // v4 메서드 호출 방식
-  const resp = await openai.chat.completions.create({
-    model,
-    messages,
-    temperature,
-    max_tokens: maxTokens,
-  });
-
-  const msg = resp.choices?.[0]?.message?.content;
-  if (!msg) throw new Error('OpenAI 응답이 없습니다.');
-  return msg.trim();
+// 안전하게 API 키 가져오기
+let apiKey = '';
+try {
+  apiKey = functions.config().openai.api_key;
+  if (!apiKey) {
+    console.warn('⚠️ OpenAI API Key is missing in Firebase config.');
+  }
+} catch (err) {
+  console.error('❌ Error loading OpenAI API Key from config:', err);
 }
 
-module.exports = { chat };
+const openai = new OpenAI({
+  apiKey: apiKey || '',  // 빈 값이라도 넣어서 Cloud Run crash 방지
+});
+
+module.exports = { openai };
