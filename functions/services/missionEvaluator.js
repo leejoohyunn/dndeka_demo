@@ -1,6 +1,6 @@
 // src/services/missionEvaluator.js
 const { chat } = require('./llmService');
-const missions = require('../../src/data/missions');
+const missions = require('../data/missions');
 
 /**
  * 미션 수행 평가

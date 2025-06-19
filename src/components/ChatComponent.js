@@ -145,28 +145,25 @@ function ChatComponent() {
         });
         
         console.log("Cloud Function response:", result.data);
-        
-        // 함수가 직접 Firestore에 응답을 저장하지 않는 경우 여기서 저장
-        if (result.data && result.data.response) {
-          const botResponse = {
-            text: result.data.response,
-            sender: "bot",
-            userId: currentUser.uid,
-            timestamp: serverTimestamp()
-          };
-          
-          const botDocRef = await addDoc(collection(db, "userMessages"), botResponse);
-          console.log("Bot response saved with ID:", botDocRef.id);
-        }
+      
       } catch (error) {
-        console.error("Error calling Cloud Function:", error);
+        console.error("Cloud Function error details:", error);
         
+        // 더 구체적인 에러 메시지
+        let errorMessage = "응답 생성 중 오류가 발생했습니다.";
+        if (error.code === 'unauthenticated') {
+          errorMessage = "인증이 필요합니다. 다시 로그인해주세요.";
+        } else if (error.code === 'invalid-argument') {
+          errorMessage = "잘못된 요청입니다.";
+        }
+
         // 에러 발생 시 기본 응답 제공
         const fallbackResponse = {
-          text: "죄송합니다, 응답을 생성하는데 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          text: errorMessage,
           sender: "bot",
           userId: currentUser.uid,
-          timestamp: serverTimestamp()
+          timestamp: serverTimestamp(),
+          error: true
         };
         
         await addDoc(collection(db, "userMessages"), fallbackResponse);

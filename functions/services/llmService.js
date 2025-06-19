@@ -3,9 +3,8 @@
 const functions = require('firebase-functions');
 const { OpenAI } = require('openai');
 
-const openai = new OpenAI({
-  apiKey: functions.config().openai.key,  // Firebase 설정에서 읽어옴
-});
+const apiKey = process.env.OPENAI_API_KEY;
+
 /**
  * OpenAI ChatCompletion 호출
  */

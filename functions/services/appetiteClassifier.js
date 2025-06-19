@@ -1,7 +1,7 @@
 // src/services/appetiteClassifier.js
 const { chat } = require('./llmService');
-const questions = require('../../src/data/questions');
-const appetiteTypes = require('../../src/data/appetiteTypes');
+const questions = require('../data/questions');
+const appetiteTypes = require('../data/appetiteTypes');
 
 /**
  * 분류용 프롬프트 생성
