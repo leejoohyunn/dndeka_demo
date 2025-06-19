@@ -15,17 +15,22 @@ async function chat(messages, options = {}) {
     maxTokens   = 500,
   } = options;
 
-  // v4 메서드 호출 방식
-  const resp = await openai.chat.completions.create({
-    model,
-    messages,
-    temperature,
-    max_tokens: maxTokens,
-  });
+  try {
+    // v4 메서드 호출 방식
+    const resp = await openai.chat.completions.create({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+    });
 
-  const msg = resp.choices?.[0]?.message?.content;
-  if (!msg) throw new Error('OpenAI 응답이 없습니다.');
-  return msg.trim();
+    const msg = resp.choices?.[0]?.message?.content;
+    if (!msg) throw new Error('OpenAI 응답이 없습니다.');
+    return msg.trim();
+  } catch (error) {
+    console.error('OpenAI API 호출 오류:', error);
+    throw new Error(`OpenAI API 오류: ${error.message}`);
+  }
 }
 
 module.exports = { chat };
