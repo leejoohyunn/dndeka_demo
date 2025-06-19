@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/config';
 import './Auth.css';
 
 function Signup() {

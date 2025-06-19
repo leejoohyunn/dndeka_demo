@@ -7,7 +7,9 @@ import {
   orderBy, 
   onSnapshot, 
   serverTimestamp,
-  where 
+  where,
+  doc,
+  getDoc 
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -21,6 +23,7 @@ function ChatComponent() {
   const [imagePreview, setImagePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const messagesEndRef = useRef(null);
 
   // 현재 인증된 사용자 추적
@@ -38,10 +41,26 @@ function ChatComponent() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // 새 사용자 초기화 함수
+  const initializeNewUser = async (userId) => {
+    try {
+      console.log("Initializing new user:", userId);
+      const initializeFunction = httpsCallable(functions, 'initializeNewUser');
+      const result = await initializeFunction({ userId });
+      console.log("User initialization result:", result.data);
+      setIsInitialized(true);
+    } catch (error) {
+      console.error("Error initializing new user:", error);
+      // 에러가 발생해도 계속 진행
+      setIsInitialized(true);
+    }
+  };
+
   // 사용자별 메시지 불러오기
   useEffect(() => {
     if (!currentUser) {
       console.log("No user logged in, skipping message load");
+      setIsInitialized(false);
       return; 
     }
     
@@ -54,13 +73,22 @@ function ChatComponent() {
       orderBy("timestamp", "asc")
     );
     
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       console.log("Message snapshot received, count:", querySnapshot.size);
       const messagesData = [];
       querySnapshot.forEach((doc) => {
         messagesData.push({ id: doc.id, ...doc.data() });
       });
       setMessages(messagesData);
+      
+      // 새 사용자 체크 및 초기화
+      if (!isInitialized && messagesData.length === 0) {
+        console.log("New user detected, initializing...");
+        await initializeNewUser(currentUser.uid);
+      } else {
+        setIsInitialized(true);
+      }
+      
       scrollToBottom();
     }, (error) => {
       console.error("Messages loading error:", error);
@@ -68,7 +96,7 @@ function ChatComponent() {
     });
     
     return () => unsubscribe();
-  }, [currentUser]);
+  }, [currentUser, isInitialized]);
 
   // 이미지 선택 핸들러
   const handleImageChange = (e) => {
@@ -194,6 +222,17 @@ function ChatComponent() {
     }
   };
 
+  // 수동 초기화 함수 (테스트용)
+  const manualInitialize = async () => {
+    if (!currentUser) return;
+    
+    try {
+      await initializeNewUser(currentUser.uid);
+    } catch (error) {
+      console.error("Manual initialization error:", error);
+    }
+  };
+
   return (
     <div className="chat-container">
       {/* 로그인 상태 표시 및 테스트 버튼 */}
@@ -205,16 +244,24 @@ function ChatComponent() {
           }
         </div>
         {currentUser && (
-          <button onClick={sendTestMessage} className="test-button">
-            테스트 메시지
-          </button>
+          <div>
+            <button onClick={sendTestMessage} className="test-button">
+              테스트 메시지
+            </button>
+            <button onClick={manualInitialize} className="test-button">
+              챗봇 시작
+            </button>
+          </div>
         )}
       </div>
       
       <div className="messages-list">
         {messages.length === 0 ? (
           <div className="empty-messages">
-            메시지가 없습니다. 첫 메시지를 보내보세요!
+            {isInitialized ? 
+              "메시지가 없습니다. 첫 메시지를 보내보세요!" : 
+              "챗봇을 초기화 중입니다..."
+            }
           </div>
         ) : (
           messages.map((msg) => (
